@@ -106,8 +106,16 @@ const parseComponentDocLike = (componentDoc: ComponentDocLike): ParsedDocgen => 
         {
           description: prop.description || undefined,
           // RDT uses prop.type.name as a flat string (e.g. "() => void", "{ id: string }")
-          // For enums, prefer prop.type.raw which has the full union
-          type: prop.type?.raw ?? prop.type?.name,
+          // For enums, prefer prop.type.raw which has the full union.
+          // When raw is a bare identifier (named alias like "Size"), reconstruct
+          // the union from the value array so get-documentation shows the actual values.
+          type: (() => {
+            const raw = prop.type?.raw;
+            if (raw && prop.type?.name === "enum" && prop.type?.value && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(raw)) {
+              return prop.type.value.map((v: any) => v.value).join(" | ");
+            }
+            return raw ?? prop.type?.name;
+          })(),
           defaultValue: prop.defaultValue?.value,
           required: prop.required,
         },

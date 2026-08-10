@@ -382,6 +382,40 @@ describe('parseReactDocgenTypescript', () => {
 		`);
   });
 
+  test('reconstructs named union alias values from value array', () => {
+    const result = parseReactDocgenTypescript({
+      displayName: 'Button',
+      filePath: 'src/Button.tsx',
+      description: '',
+      methods: [],
+      props: {
+        size: {
+          name: 'size',
+          description: 'Visual size',
+          type: {
+            name: 'enum',
+            raw: 'Size',
+            value: [{ value: '"small"' }, { value: '"medium"' }, { value: '"large"' }],
+          },
+          defaultValue: { value: '"md"' },
+          required: false,
+        },
+      },
+    });
+    expect(result).toMatchInlineSnapshot(`
+			{
+			  "props": {
+			    "size": {
+			      "defaultValue": ""md"",
+			      "description": "Visual size",
+			      "required": false,
+			      "type": ""small" | "medium" | "large"",
+			    },
+			  },
+			}
+		`);
+  });
+
   test('falls back to type.name when type.raw is not present', () => {
     const result = parseReactDocgenTypescript({
       displayName: 'Callback',
