@@ -93,7 +93,7 @@ const useCode = ({
   const code = useSnippet ? staticSnippet : sourceParameters.originalSource || '';
   const transformer = transformFromProps ?? sourceParameters.transform;
 
-  const transformedCode = transformer ? useTransformCode(code, transformer, storyContext) : code;
+  const transformedCode = transformer && !useSnippet ? useTransformCode(code, transformer, storyContext) : code;
 
   if (sourceParameters.code !== undefined) {
     return sourceParameters.code;
