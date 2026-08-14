@@ -93,7 +93,11 @@ const useCode = ({
   const code = useSnippet ? staticSnippet : sourceParameters.originalSource || '';
   const transformer = transformFromProps ?? sourceParameters.transform;
 
-  const transformedCode = transformer ? useTransformCode(code, transformer, storyContext) : code;
+  // Only apply the transform when using the originalSource (static source code),
+  // because when using a snippet from the renderer (via SNIPPET_RENDERED),
+  // the transform has already been applied in emitTransformCode.ts.
+  // Applying it again would double-transform the source.
+  const transformedCode = transformer && !useSnippet ? useTransformCode(code, transformer, storyContext) : code;
 
   if (sourceParameters.code !== undefined) {
     return sourceParameters.code;
