@@ -54,13 +54,19 @@ export const Navigate: typeof _Navigate = ({ to, href }) => {
   return null;
 };
 
+type LinkRenderProps = {
+  isActive: boolean;
+  isPending: boolean;
+  href: string;
+};
+
 export const Link = ({
   to,
   children,
   ...props
 }: {
   to: string;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((props: LinkRenderProps) => React.ReactNode);
   [key: string]: unknown;
 }) => {
   const location = useLocation();
@@ -68,6 +74,14 @@ export const Link = ({
     string,
     unknown
   >;
+  const resolvedChildren =
+    typeof children === 'function'
+      ? (children as (props: LinkRenderProps) => React.ReactNode)({
+          isActive: false,
+          isPending: false,
+          href: to,
+        })
+      : children;
   return React.createElement(
     'a',
     {
@@ -77,7 +91,7 @@ export const Link = ({
         onNavigate({ to, from: location.href });
       },
     },
-    children
+    resolvedChildren
   );
 };
 
