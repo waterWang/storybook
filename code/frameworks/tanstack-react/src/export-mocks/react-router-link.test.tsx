@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import {
@@ -122,5 +122,36 @@ describe('Link mock', () => {
 
     expect(onNavigate).toHaveBeenCalledWith(expect.objectContaining({ to: '/users/$userId' }));
     expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('supports render-prop (function) children', async () => {
+    await renderWithRouter(
+      <Link to="/other" data-testid="render-prop-link">
+        {() => <span>rendered from a function child</span>}
+      </Link>
+    );
+
+    const link = await screen.findByTestId('render-prop-link');
+    expect(link.getAttribute('href')).toBe('/other');
+    expect(link.innerHTML).toContain('rendered from a function child');
+  });
+
+  it('passes active state to render-prop children', async () => {
+    const linkSpy = vi.fn(({ isActive, isPending }: any) => (
+      <span>
+        {isActive ? 'active' : 'inactive'}:{isPending ? 'pending' : 'settled'}
+      </span>
+    ));
+    await renderWithRouter(
+      <Link to="/about" data-testid="active-prop-link">
+        {linkSpy}
+      </Link>
+    );
+
+    const link = await screen.findByTestId('active-prop-link');
+    expect(linkSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ isActive: expect.any(Boolean), isPending: false })
+    );
+    expect(link.innerHTML).toContain('inactive:settled');
   });
 });

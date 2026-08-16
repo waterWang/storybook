@@ -60,7 +60,7 @@ export const Link = ({
   ...props
 }: {
   to: string;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((renderProps: Record<string, unknown>) => React.ReactNode);
   [key: string]: unknown;
 }) => {
   const location = useLocation();
@@ -68,6 +68,14 @@ export const Link = ({
     string,
     unknown
   >;
+  const resolvedChildren =
+    typeof children === 'function'
+      ? (children as (renderProps: Record<string, unknown>) => React.ReactNode)({
+          isActive: typeof to === 'string' && location.pathname === linkProps.href,
+          isPending: false,
+          href: linkProps.href,
+        })
+      : children;
   return React.createElement(
     'a',
     {
@@ -77,7 +85,7 @@ export const Link = ({
         onNavigate({ to, from: location.href });
       },
     },
-    children
+    resolvedChildren
   );
 };
 
